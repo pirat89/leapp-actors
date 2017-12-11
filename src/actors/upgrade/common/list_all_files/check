@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+from subprocess import Popen, PIPE
+import json
+import sys
+
+
+def log_error(errmsg):
+    """Log error on stderr."""
+    sys.stderr.write("%s\n" % errmsg)
+
+
+# NOTE: expected dirs without whitespaces
+cmd_local_mnt = "df --local -P | rev | cut -f1 -d' ' | rev | tail -n +2"
+cmd_file_list = "find $i -xdev -print"
+cmd = "for i in $(%s);do %s; done |sort |uniq" % (cmd_local_mnt, cmd_file_list)
+
+p = Popen(cmd, shell=True, stdout=PIPE)
+p_out, dummy = p.communicate()
+if p.returncode != 0:
+    log_error("Some unkown error during generating of file list.")
+    sys.exit(p.returncode)
+    # TODO: errror handling? it is highly unexpected to get error here
+
+files = p_out.splitlines()
+out = {"all_files": [{"value": files}]}
+print(json.dumps(out))
