@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+
+import sys
+import json
+
+
+def load_inputs():
+    "Load all inputs and return dictionary with all input channels."
+    inputs = {}
+    if not sys.stdin.isatty():
+        input_data = sys.stdin.read()
+        if input_data:
+            inputs = json.loads(input_data)
+    return inputs
+
+
+def store_output(channel, data):
+    "Store the data into the expected channel (inside outputs object)."
+    # TODO: create class for input/output data? of course, this particular
+    # function works just for StringList now
+    outputs[channel] = [{"value": data}]
+    return
+
+
+def log_error(msg):
+    "Log error on stderr."
+    sys.stderr.write("Error: %s\n" % msg)
+
+
+def detect_repo(fname):
+    """
+    Check whether we found VCS repository or not.
+
+    In case we detected repository, return repository type (string). Otherwise
+    return None object.
+    """
+    for repo, suffix in vcs_map.items():
+        if fname.endswith("/%s" % suffix):
+            return repo
+    return None
+
+
+in_flist = "all_files"
+vcs_map = {"bzr": ".bzr/branch/branch.conf",
+           "hg": ".hg/config",
+           "git": ".git/config",
+           "svn": ".svn/entries",
+           "cvs": "CVS/Root"}
+inputs = load_inputs()
+outputs = {}
+vcs = {}
+for key in ["bzr", "hg", "git", "svn", "cvs"]:
+    vcs[key] = []
+
+if in_flist not in inputs:
+    log_error("The expected input channel was not found '%s'." % in_flist)
+    sys.exit(1)
+
+for fname in inputs[in_flist][0]["value"]:
+    repo = detect_repo(fname)
+    if repo:
+        vcs[repo].append(fname)
+
+for repo, data in vcs.items():
+    store_output("vcs_repo_%s" % repo, data)
+
+print(json.dumps(outputs))
