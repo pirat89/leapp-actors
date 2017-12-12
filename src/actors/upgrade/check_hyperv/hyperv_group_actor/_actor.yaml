@@ -1,0 +1,9 @@
+outputs:
+- name: html_output
+  type:
+    name: String
+description: |
+  Group all Pre Upgrade Modules and return problems found
+group:
+- check_hyperv
+- check_html_output
