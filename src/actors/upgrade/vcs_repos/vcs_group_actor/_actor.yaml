@@ -1,0 +1,10 @@
+outputs:
+- name: check_output
+  type:
+    name: CheckOutput
+description: |
+  ...
+group:
+- list_all_files
+- vcs_detection
+- vcs_report
